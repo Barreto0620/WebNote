@@ -10,22 +10,36 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDark, setIsDark] = useState(true); // Default to dark mode
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('mario_covas_theme');
     if (storedTheme) {
-      setIsDark(storedTheme === 'dark');
+      const isDarkMode = storedTheme === 'dark';
+      setIsDark(isDarkMode);
+      // Apply theme immediately
+      if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } else {
+      // Default to dark mode if no stored preference
+      document.documentElement.classList.add('dark');
     }
+    setIsInitialized(true);
   }, []);
 
   useEffect(() => {
+    if (!isInitialized) return;
+    
     localStorage.setItem('mario_covas_theme', isDark ? 'dark' : 'light');
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [isDark]);
+  }, [isDark, isInitialized]);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
