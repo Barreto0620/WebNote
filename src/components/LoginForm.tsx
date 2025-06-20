@@ -38,8 +38,8 @@ const LoginForm: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 p-4">
       <Card className="w-full max-w-md bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-0 shadow-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
             Mario Covas
           </CardTitle>
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -49,30 +49,32 @@ const LoginForm: React.FC = () => {
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-10"
+                className="h-12 text-base"
+                placeholder="Digite seu email"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-10"
+                className="h-12 text-base"
+                placeholder="Digite sua senha"
               />
             </div>
             <Button 
               type="submit" 
-              className="w-full h-10 bg-green-600 hover:bg-green-700 text-white"
+              className="w-full h-12 bg-green-600 hover:bg-green-700 text-white text-base font-medium"
               disabled={isLoading}
             >
               {isLoading ? 'Entrando...' : 'Entrar'}
@@ -80,7 +82,7 @@ const LoginForm: React.FC = () => {
           </form>
           
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 text-center">
               Contas de teste disponíveis:
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -88,33 +90,33 @@ const LoginForm: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => quickLogin('admin@example.com', 'Admin@123')}
-                className="text-xs"
+                className="text-xs h-10"
               >
-                Admin
+                Administrador
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => quickLogin('ti_user@example.com', 'TiUser@123')}
-                className="text-xs"
+                className="text-xs h-10"
               >
-                TI
+                Support TI
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => quickLogin('mv_user@example.com', 'MvUser@123')}
-                className="text-xs"
+                className="text-xs h-10"
               >
-                MV
+                Sistemas MV
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => quickLogin('viewer@example.com', 'Viewer@123')}
-                className="text-xs"
+                className="text-xs h-10"
               >
-                Viewer
+                Visualizador
               </Button>
             </div>
           </div>

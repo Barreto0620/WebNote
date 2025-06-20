@@ -12,7 +12,7 @@ const Index = () => {
   const [currentView, setCurrentView] = useState<ViewMode>('Geral');
 
   useEffect(() => {
-    // Set default view based on user role
+    // Definir visualização padrão baseada no papel do usuário
     if (user) {
       if (user.role === 'Support TI') {
         setCurrentView('Support TI');
@@ -40,14 +40,14 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex w-full">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col md:flex-row w-full">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} />
       <MainContent currentView={currentView} />
     </div>
   );
 };
 
-// Wrap the main component with providers
+// Envolver componente principal com providers
 const IndexWithProviders = () => {
   return (
     <ThemeProvider>

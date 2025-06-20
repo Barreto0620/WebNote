@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Definição do sistema de design. Todas as cores, gradientes, fontes, etc devem ser definidas aqui. */
 
 @layer base {
   :root {
@@ -97,7 +97,7 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Corporate styling enhancements */
+  /* Melhorias de estilo corporativo */
   .corporate-card {
     @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-corporate hover:shadow-corporate-lg transition-all duration-200;
   }
@@ -110,29 +110,29 @@
     @apply transition-all duration-200 focus:ring-2 focus:ring-green-500/20 focus:border-green-500;
   }
 
-  /* Markdown content styling */
+  /* Estilização de conteúdo Markdown */
   .prose {
     @apply max-w-none;
   }
 
   .prose h1 {
-    @apply text-xl font-bold text-gray-900 dark:text-white mb-4 mt-6;
+    @apply text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-4 mt-6;
   }
 
   .prose h2 {
-    @apply text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 mt-5;
+    @apply text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 mt-5;
   }
 
   .prose h3 {
-    @apply text-base font-medium text-gray-700 dark:text-gray-200 mb-2 mt-4;
+    @apply text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 mb-2 mt-4;
   }
 
   .prose p {
-    @apply text-gray-700 dark:text-gray-300 mb-3 leading-relaxed;
+    @apply text-gray-700 dark:text-gray-300 mb-3 leading-relaxed text-sm md:text-base;
   }
 
   .prose code {
-    @apply bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-1 py-0.5 rounded text-sm font-mono;
+    @apply bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-1 py-0.5 rounded text-xs md:text-sm font-mono;
   }
 
   .prose pre {
@@ -155,7 +155,7 @@
     @apply border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic text-gray-600 dark:text-gray-400 mb-4;
   }
 
-  /* Custom scrollbar */
+  /* Scrollbar personalizada */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
@@ -171,14 +171,62 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400 dark:bg-gray-500;
   }
+
+  /* Classes utilitárias de truncamento para mobile */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Correções para mobile */
+  @media (max-width: 768px) {
+    .prose h1 {
+      @apply text-base font-bold;
+    }
+    
+    .prose h2 {
+      @apply text-sm font-semibold;
+    }
+    
+    .prose p {
+      @apply text-xs leading-relaxed;
+    }
+  }
 }
 
-/* Animation utilities */
+/* Utilitários de animação */
 .animate-fade-in {
   animation: fade-in 0.3s ease-out forwards;
 }
 
-/* Loading spinner */
+/* Spinner de carregamento */
 .spinner {
   @apply animate-spin rounded-full border-2 border-gray-200 border-t-green-600;
+}
+
+/* Melhorias para touch em mobile */
+@media (max-width: 768px) {
+  button, .button {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  input, textarea, select {
+    @apply min-h-[44px];
+  }
 }

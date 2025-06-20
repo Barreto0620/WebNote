@@ -43,12 +43,12 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
   const filterNotes = () => {
     let filtered = notes;
 
-    // Filter by view
+    // Filtrar por visualização
     if (currentView !== 'Geral') {
       filtered = filtered.filter(note => note.team === currentView);
     }
 
-    // Filter by search term
+    // Filtrar por termo de busca
     if (searchTerm) {
       filtered = filtered.filter(note => 
         note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,12 +58,12 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
       );
     }
 
-    // Filter by tag
+    // Filtrar por tag
     if (filterTag && filterTag !== 'all') {
       filtered = filtered.filter(note => note.tags.includes(filterTag));
     }
 
-    // Sort by updated date (newest first)
+    // Ordenar por data de atualização (mais recente primeiro)
     filtered.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
     setFilteredNotes(filtered);
@@ -134,7 +134,7 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
       case 'Sistemas MV':
         return 'Notas da Equipe Sistemas MV';
       case 'Geral':
-        return 'Todas as Notas - Visualização Geral';
+        return 'Visão Geral - Todas as Notas';
       default:
         return 'Notas';
     }
@@ -164,7 +164,7 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
 
   if (isEditing) {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <NoteEditor
           note={editingNote}
           onSave={handleSaveNote}
@@ -175,22 +175,22 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
   }
 
   return (
-    <div className="flex-1 p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+    <div className="flex-1 p-4 md:p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Cabeçalho */}
+      <div className="mb-6 md:mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 space-y-2 md:space-y-0">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
               {getViewTitle()}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
               {getViewDescription()}
             </p>
           </div>
           {canCreateNote() && (
             <Button
               onClick={handleCreateNote}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-600 hover:bg-green-700 text-white w-full md:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Nova Nota
@@ -198,8 +198,8 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
           )}
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        {/* Busca e Filtros */}
+        <div className="flex flex-col space-y-3 md:space-y-0 md:flex-row md:space-x-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
@@ -210,7 +210,7 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
             />
           </div>
           <Select value={filterTag} onValueChange={setFilterTag}>
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-full md:w-48">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Filtrar por tag" />
             </SelectTrigger>
@@ -226,10 +226,10 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
         </div>
       </div>
 
-      {/* Notes Grid */}
+      {/* Grid de Notas */}
       {filteredNotes.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
+          <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg mb-4">
             {searchTerm || filterTag 
               ? 'Nenhuma nota encontrada com os filtros aplicados.'
               : currentView === 'Geral' 
@@ -248,7 +248,7 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
           )}
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {filteredNotes.map((note) => (
             <NoteCard
               key={note.id}
@@ -262,9 +262,9 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
         </div>
       )}
 
-      {/* Stats */}
+      {/* Estatísticas */}
       {filteredNotes.length > 0 && (
-        <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div className="mt-6 md:mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Mostrando {filteredNotes.length} de {notes.length} nota{notes.length !== 1 ? 's' : ''}
             {searchTerm && ` para "${searchTerm}"`}
