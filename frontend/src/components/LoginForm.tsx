@@ -16,7 +16,7 @@ const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Tenta fazer o login usando a função do AuthContext (que agora se comunica com o backend)
+    // Tenta fazer o login usando a função do AuthContext (que se comunica com o backend)
     const success = await login(email, password);
     if (success) {
       toast({
@@ -24,6 +24,7 @@ const LoginForm: React.FC = () => {
         description: "Bem-vindo ao Mario Covas Notas Internas",
       });
       // Redireciona para a página inicial ('/') após o login bem-sucedido
+      // A rota '/' agora levará diretamente para NotesPage
       navigate('/'); 
     } else {
       toast({
