@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -6,33 +5,33 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom'; // Importa o hook useNavigate
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login, isLoading } = useAuth();
+  const navigate = useNavigate(); // Inicializa o hook useNavigate
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Tenta fazer o login usando a função do AuthContext (que agora se comunica com o backend)
     const success = await login(email, password);
     if (success) {
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo ao Mario Covas Notas Internas",
       });
+      // Redireciona para a página inicial ('/') após o login bem-sucedido
+      navigate('/'); 
     } else {
       toast({
         title: "Erro no login",
-        description: "Email ou senha incorretos",
+        description: "Email ou senha incorretos. Por favor, tente novamente.",
         variant: "destructive",
       });
     }
-  };
-
-  const quickLogin = (userEmail: string, userPassword: string) => {
-    setEmail(userEmail);
-    setPassword(userPassword);
   };
 
   return (
@@ -75,51 +74,13 @@ const LoginForm: React.FC = () => {
             <Button 
               type="submit" 
               className="w-full h-12 bg-green-600 hover:bg-green-700 text-white text-base font-medium"
-              disabled={isLoading}
+              disabled={isLoading} // Desabilita o botão enquanto o login está em andamento
             >
               {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
-          
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 text-center">
-              Contas de teste disponíveis:
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => quickLogin('admin@example.com', 'Admin@123')}
-                className="text-xs h-10"
-              >
-                Administrador
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => quickLogin('ti_user@example.com', 'TiUser@123')}
-                className="text-xs h-10"
-              >
-                Support TI
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => quickLogin('mv_user@example.com', 'MvUser@123')}
-                className="text-xs h-10"
-              >
-                Sistemas MV
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => quickLogin('viewer@example.com', 'Viewer@123')}
-                className="text-xs h-10"
-              >
-                Visualizador
-              </Button>
-            </div>
-          </div>
+          {/* Os botões de login rápido foram removidos para refletir um fluxo de login mais profissional,
+              que agora depende da autenticação real via backend. */}
         </CardContent>
       </Card>
     </div>

@@ -4,8 +4,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import connectDB from './config/db';
 import notesRoutes from './routes/notes';
+import authRoutes from './routes/auth';
 
-dotenv.config({ path: '.env' }); // Carrega variáveis de ambiente da raiz do monorepo ou .env no backend
+// Carrega variáveis de ambiente
+dotenv.config({ path: '.env' }); 
+
+// ADICIONE ESTA LINHA PARA DEBUGAR
+console.log('JWT_SECRET carregado:', process.env.JWT_SECRET); 
 
 const app = express();
 
@@ -19,6 +24,7 @@ app.use(helmet()); // Adiciona cabeçalhos de segurança HTTP
 
 // Rotas da API
 app.use('/api/notes', notesRoutes);
+app.use('/api/auth', authRoutes);
 
 // Rota de teste
 app.get('/', (req, res) => {
