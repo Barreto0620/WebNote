@@ -1,159 +1,134 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Note } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface NoteEditorProps {
   note?: Note;
-  onSave: (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onSave: (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'author' | 'authorName' | '_id'>) => void;
   onCancel: () => void;
+  defaultTeam: 'Geral' | 'Support TI' | 'Sistemas MV';
+  userRole?: 'Admin' | 'Support TI' | 'Sistemas MV' | 'Viewer';
 }
 
-const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel }) => {
-  const { user } = useAuth();
+const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, defaultTeam, userRole }) => {
   const [title, setTitle] = useState(note?.title || '');
   const [content, setContent] = useState(note?.content || '');
-  const [team, setTeam] = useState<'Support TI' | 'Sistemas MV'>(note?.team || 'Support TI');
-  const [tags, setTags] = useState<string[]>(note?.tags || []);
-  const [newTag, setNewTag] = useState('');
+  // Garante que o team inicial seja um dos tipos válidos
+  const [team, setTeam] = useState<typeof defaultTeam>(note?.team || defaultTeam);
+  const [tagsInput, setTagsInput] = useState(note?.tags.join(', ') || '');
 
-  const handleAddTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
-      setNewTag('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
+  useEffect(() => {
+    setTitle(note?.title || '');
+    setContent(note?.content || '');
+    setTeam(note?.team || defaultTeam);
+    setTagsInput(note?.tags.join(', ') || '');
+  }, [note, defaultTeam]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim() || !user) return;
-
-    onSave({
-      authorId: user.id,
-      authorName: user.name,
-      team,
-      title: title.trim(),
-      content: content.trim(),
-      tags
-    });
+    const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    onSave({ title, content, team, tags });
   };
 
-  const getAvailableTeams = () => {
-    const teams: Array<'Support TI' | 'Sistemas MV'> = [];
-    
-    if (user?.role === 'Support TI' || user?.role === 'Admin') {
-      teams.push('Support TI');
+  const isTeamEditable = userRole === 'Admin';
+
+  // Define as opções de equipe visíveis no Select
+  const getTeamOptions = () => {
+    if (userRole === 'Admin') {
+      return ['Geral', 'Support TI', 'Sistemas MV'];
+    } else if (userRole === 'Support TI') {
+      return ['Geral', 'Support TI'];
+    } else if (userRole === 'Sistemas MV') {
+      return ['Geral', 'Sistemas MV'];
     }
-    
-    if (user?.role === 'Sistemas MV' || user?.role === 'Admin') {
-      teams.push('Sistemas MV');
-    }
-    
-    return teams;
+    return []; // Viewers ou roles desconhecidas não devem ver o select
   };
+
+  const teamOptions = getTeamOptions();
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-        {note ? 'Editar Nota' : 'Nova Nota'}
-      </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <Label htmlFor="title">Título</Label>
-          <Input
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Digite o título da nota..."
-            required
-            className="mt-1"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="team">Equipe</Label>
-          <Select value={team} onValueChange={(value: 'Support TI' | 'Sistemas MV') => setTeam(value)}>
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Selecione a equipe" />
-            </SelectTrigger>
-            <SelectContent>
-              {getAvailableTeams().map((teamOption) => (
-                <SelectItem key={teamOption} value={teamOption}>
-                  {teamOption}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="content">Conteúdo (Markdown)</Label>
-          <Textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Digite o conteúdo da nota em Markdown...&#10;&#10;Exemplo:&#10;# Título&#10;## Subtítulo&#10;**Negrito** e *itálico*&#10;```&#10;código aqui&#10;```"
-            required
-            className="mt-1 min-h-[200px] font-mono"
-          />
-        </div>
-
-        <div>
-          <Label>Tags</Label>
-          <div className="flex flex-wrap gap-2 mt-2 mb-2">
-            {tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                #{tag}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(tag)}
-                  className="ml-1 hover:text-red-600"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-          <div className="flex space-x-2">
+    <Card className="w-full max-w-2xl mx-auto my-8">
+      <CardHeader>
+        <CardTitle>{note ? 'Editar Nota' : 'Criar Nova Nota'}</CardTitle>
+        <CardDescription>
+          {note ? 'Faça alterações na nota existente.' : 'Preencha os detalhes para criar uma nova nota.'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Título</Label>
             <Input
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              placeholder="Adicionar tag..."
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-              className="flex-1"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Título da nota"
+              required
             />
-            <Button type="button" onClick={handleAddTag} variant="outline">
-              Adicionar
-            </Button>
           </div>
-        </div>
-
-        <div className="flex space-x-3 pt-4">
-          <Button 
-            type="submit" 
-            className="bg-green-600 hover:bg-green-700 text-white"
-            disabled={!title.trim() || !content.trim()}
-          >
-            {note ? 'Salvar Alterações' : 'Criar Nota'}
-          </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-        </div>
-      </form>
-    </div>
+          <div className="space-y-2">
+            <Label htmlFor="content">Conteúdo</Label>
+            <Textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Escreva o conteúdo da nota aqui..."
+              required
+              rows={8}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="team">Equipe</Label>
+            <Select value={team} onValueChange={setTeam} disabled={!isTeamEditable}>
+              <SelectTrigger id="team" className="w-full">
+                <SelectValue placeholder="Selecione a equipe" />
+              </SelectTrigger>
+              <SelectContent>
+                {teamOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                        {option}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!isTeamEditable && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Apenas administradores podem alterar a equipe da nota.
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags (separadas por vírgulas)</Label>
+            <Input
+              id="tags"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              placeholder="Ex: documentacao, urgentes, sistemaX"
+            />
+          </div>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-end space-x-2">
+        <Button variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit" onClick={handleSubmit} className="bg-green-600 hover:bg-green-700 text-white">
+          Salvar Nota
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
