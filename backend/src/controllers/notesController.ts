@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express'; // Adicionado NextFunction
+import { Request, Response, NextFunction } from 'express';
 import Note, { INote } from '../models/Note';
 import { Types } from 'mongoose';
 
@@ -26,41 +26,29 @@ export const getNotes = async (req: AuthenticatedRequest, res: Response) => {
     let query: any = {};
     const { search, tag, teamView } = req.query;
 
-    // Define as equipes que o usuário tem permissão para VER
     let allowedTeams: string[] = [];
 
     if (user.role === 'Admin') {
-      // Admins podem ver todas as notas (não restringimos por equipe por padrão aqui)
-      // Se um teamView for passado, eles podem filtrar por ele.
+      // Admin pode ver todas as notas, sem restrição de equipe por default
     } else if (user.role === 'Viewer') {
-      // Viewers só podem ver notas "Geral"
       allowedTeams = ['Geral'];
     } else if (user.role === 'Support TI' || user.role === 'Sistemas MV') {
-      // Usuários de equipe podem ver notas da sua própria equipe E notas "Geral"
       allowedTeams = [user.role, 'Geral'];
     } else {
       return res.status(403).json({ message: 'Acesso negado para esta função.' });
     }
 
-    // Se houver equipes permitidas definidas para a role, filtramos por elas
     if (allowedTeams.length > 0) {
       query.team = { $in: allowedTeams };
     }
 
-    // Se um 'teamView' específico foi solicitado na query string pelo frontend
     if (teamView && typeof teamView === 'string') {
-        // Regra de segurança: Se o usuário NÃO É Admin, e a teamView solicitada
-        // não está entre as equipes que ele PODE ver, então negamos.
-        // Se for admin, ele pode solicitar qualquer teamView.
         if (user.role !== 'Admin' && !allowedTeams.includes(teamView)) {
             return res.status(403).json({ message: `Acesso negado: Você não tem permissão para visualizar a equipe "${teamView}".` });
         }
-        // Se o usuário tem permissão ou é admin, aplica o filtro de teamView
         query.team = teamView;
     }
 
-
-    // Aplicar filtros de busca e tags
     if (search) {
       const searchRegex = new RegExp(search as string, 'i');
       query.$or = [
@@ -99,18 +87,15 @@ export const createNote = async (req: AuthenticatedRequest, res: Response) => {
     return res.status(403).json({ message: 'Acesso negado: Visualizadores não podem criar notas.' });
   }
 
-  // Valida que a equipe fornecida no corpo da requisição é válida
   if (!team || !['Geral', 'Support TI', 'Sistemas MV'].includes(team)) {
     return res.status(400).json({ message: 'Equipe inválida ou não fornecida.' });
   }
 
-  // Usuários de equipe só podem criar notas para sua própria equipe ou 'Geral'
-  if (user.role !== 'Admin' && user.role !== 'Viewer') { // Exclui Admin e Viewer da verificação específica
+  if (user.role !== 'Admin' && user.role !== 'Viewer') {
     if (team !== 'Geral' && team !== user.role) {
       return res.status(403).json({ message: `Acesso negado: Você só pode criar notas para a equipe "${user.role}" ou "Geral".` });
     }
   }
-
 
   if (!title || !content) {
     return res.status(400).json({ message: 'Por favor, inclua título e conteúdo para a nota.' });
@@ -124,6 +109,7 @@ export const createNote = async (req: AuthenticatedRequest, res: Response) => {
       authorName: user.name,
       team: team,
       tags: tags || []
+      // O 'pre save' hook no modelo já adiciona a primeira versão ao history
     });
     const savedNote = await newNote.save();
     res.status(201).json(savedNote);
@@ -154,16 +140,13 @@ export const getNoteById = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(404).json({ message: 'Nota não encontrada.' });
     }
 
-    // Verifica permissão para visualizar a nota
-    // Admin tem acesso total
     if (user.role === 'Admin') {
-      // Admin tem acesso total, não precisa de mais validação aqui
+      // Admin tem acesso total
     } else if (user.role === 'Viewer') {
       if (note.team !== 'Geral') {
         return res.status(403).json({ message: 'Acesso negado: Visualizadores só podem ver notas gerais.' });
       }
     } else if (user.role === 'Support TI' || user.role === 'Sistemas MV') {
-      // Usuários de equipe podem ver notas da sua própria equipe ou notas "Geral"
       if (note.team !== 'Geral' && note.team !== user.role) {
          return res.status(403).json({ message: 'Acesso negado: Você só pode ver notas da sua equipe ou notas gerais.' });
       }
@@ -171,7 +154,7 @@ export const getNoteById = async (req: AuthenticatedRequest, res: Response) => {
         return res.status(403).json({ message: 'Acesso negado para esta função.' });
     }
 
-    res.json(note);
+    res.json(note); // Retorna a nota, que agora incluirá o versionHistory
   } catch (error: any) {
     console.error('Erro ao obter nota por ID:', error);
     res.status(500).json({ message: `Erro no servidor ao obter nota: ${error.message}` });
@@ -200,16 +183,10 @@ export const updateNote = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(404).json({ message: 'Nota não encontrada.' });
     }
 
-    // Lógica de autorização para atualizar
     if (user.role === 'Viewer') {
       return res.status(403).json({ message: 'Acesso negado: Visualizadores não podem atualizar notas.' });
     }
     
-    // Admins podem atualizar qualquer nota.
-    // Outros usuários (Support TI, Sistemas MV) só podem atualizar:
-    // 1. Notas que eles criaram (author === user._id)
-    // 2. Notas da sua própria equipe (note.team === user.role)
-    // 3. Notas "Geral" (note.team === 'Geral')
     const hasPermissionToUpdate = user.role === 'Admin' ||
                                   note.author.toString() === user._id.toString() ||
                                   note.team === user.role ||
@@ -219,25 +196,34 @@ export const updateNote = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(403).json({ message: 'Acesso negado: Você não tem permissão para atualizar esta nota.' });
     }
     
+    // CAPTURA A VERSÃO ATUAL ANTES DE ATUALIZAR O CONTEÚDO
+    // Apenas se o conteúdo foi realmente alterado
+    if (content !== undefined && content !== note.content) {
+      note.versionHistory.push({
+        content: note.content, // Conteúdo da versão anterior
+        editedAt: new Date(),
+        editor: user._id,
+        editorName: user.name
+      });
+    }
+
     // Admins podem alterar a equipe da nota. Outras roles não.
-    if (team && team !== note.team) { // Verifica se 'team' foi enviado e se é diferente do atual
+    if (team && team !== note.team) {
         if (user.role === 'Admin') {
             if (!['Geral', 'Support TI', 'Sistemas MV'].includes(team)) {
                 return res.status(400).json({ message: 'Equipe inválida fornecida.' });
             }
             note.team = team;
         } else {
-            // Se não for admin, não pode mudar a equipe da nota
             return res.status(403).json({ message: 'Acesso negado: Você não pode alterar a equipe da nota.' });
         }
     }
 
+    note.title = title !== undefined ? title : note.title;
+    note.content = content !== undefined ? content : note.content;
+    note.tags = tags !== undefined ? tags : note.tags;
 
-    note.title = title !== undefined ? title : note.title; // Atualiza apenas se title for fornecido
-    note.content = content !== undefined ? content : note.content; // Atualiza apenas se content for fornecido
-    note.tags = tags !== undefined ? tags : note.tags; // Atualiza apenas se tags for fornecido
-
-    const updatedNote = await note.save();
+    const updatedNote = await note.save(); // Salva a nota com o histórico atualizado
     res.json(updatedNote);
   } catch (error: any) {
     console.error('Erro ao atualizar nota:', error);
@@ -266,16 +252,10 @@ export const deleteNote = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(404).json({ message: 'Nota não encontrada.' });
     }
 
-    // Lógica de autorização para deletar
     if (user.role === 'Viewer') {
       return res.status(403).json({ message: 'Acesso negado: Visualizadores não podem deletar notas.' });
     }
     
-    // Admins podem deletar qualquer nota.
-    // Outros usuários (Support TI, Sistemas MV) só podem deletar:
-    // 1. Notas que eles criaram (author === user._id)
-    // 2. Notas da sua própria equipe (note.team === user.role)
-    // 3. Notas "Geral" (note.team === 'Geral')
     const hasPermissionToDelete = user.role === 'Admin' ||
                                   note.author.toString() === user._id.toString() ||
                                   note.team === user.role ||
