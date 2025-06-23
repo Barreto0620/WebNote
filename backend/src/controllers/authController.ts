@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 // Função auxiliar para gerar JWT
 const generateToken = (id: string, role: string) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET as string, {
-    expiresIn: '1h', // Token expira em 1 hora
+    expiresIn: '365d', // Token expira em um ano, pode ser ajustado conforme necessário
   });
 };
 
