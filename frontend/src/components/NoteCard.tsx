@@ -9,9 +9,10 @@ import { Edit, Trash2, History, MessageCircle } from 'lucide-react';
 interface NoteCardProps {
   note: Note;
   onEdit: (note: Note) => void;
-  onDelete: (noteId: string) => void; // noteId agora é o _id
+  onDelete: (noteId: string) => void;
   onViewHistory: (noteId: string) => void;
-  showComments: boolean;
+  onViewComments: (noteId: string) => void; // Callback para ver comentários
+  showComments: boolean; // Prop para controlar visibilidade do botão de comentários (no MainContent)
   canEditOrDelete: boolean;
 }
 
@@ -20,9 +21,13 @@ const NoteCard: React.FC<NoteCardProps> = ({
   onEdit,
   onDelete,
   onViewHistory,
+  onViewComments,
   showComments,
   canEditOrDelete,
 }) => {
+  // Calcula o número total de comentários
+  const totalComments = note.comments ? note.comments.length : 0;
+
   return (
     <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-200">
       <CardHeader>
@@ -60,17 +65,28 @@ const NoteCard: React.FC<NoteCardProps> = ({
               <Button variant="ghost" size="icon" onClick={() => onEdit(note)} className="text-blue-500 hover:text-blue-600">
                 <Edit className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => onDelete(note._id)} className="text-red-500 hover:text-red-600"> {/* <-- Alterado para note._id */}
+              <Button variant="ghost" size="icon" onClick={() => onDelete(note._id)} className="text-red-500 hover:text-red-600">
                 <Trash2 className="w-4 h-4" />
               </Button>
             </>
           )}
-          <Button variant="ghost" size="icon" onClick={() => onViewHistory(note._id)} className="text-gray-500 hover:text-gray-600"> {/* <-- Alterado para note._id */}
+          <Button variant="ghost" size="icon" onClick={() => onViewHistory(note._id)} className="text-gray-500 hover:text-gray-600">
             <History className="w-4 h-4" />
           </Button>
           {showComments && (
-            <Button variant="ghost" size="icon" className="text-purple-500 hover:text-purple-600">
+            // Botão de comentários com contador
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => onViewComments(note._id)} 
+              className="text-purple-500 hover:text-purple-600 relative" // Adicionado 'relative' para posicionamento do contador
+            >
               <MessageCircle className="w-4 h-4" />
+              {totalComments > 0 && ( // Mostra o contador apenas se houver comentários
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {totalComments}
+                </span>
+              )}
             </Button>
           )}
         </div>

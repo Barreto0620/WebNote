@@ -11,7 +11,8 @@ import NoteCard from './NoteCard';
 import NoteEditor from './NoteEditor';
 import VersionHistory from './VersionHistory';
 import { Plus, Search, Filter } from 'lucide-react';
-import ConfirmationDialog from './ConfirmationDialog'; // Importa o componente do modal
+import ConfirmationDialog from './ConfirmationDialog';
+import NoteComments from './NoteComments';
 
 interface MainContentProps {
   currentView: ViewMode;
@@ -28,38 +29,32 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
   const [filterTag, setFilterTag] = useState<string>('');
   const [isLoadingNotes, setIsLoadingNotes] = useState(true);
   
-  // Novos estados para o modal de confirmação de exclusão
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [noteToDeleteId, setNoteToDeleteId] = useState<string | null>(null);
 
+  const [showCommentsPanel, setShowCommentsPanel] = useState<string | null>(null);
 
-  // Função para carregar notas do backend
   const loadNotes = useCallback(async () => {
     if (!user) {
       setIsLoadingNotes(false);
-      return; // Não carrega notas se o usuário não estiver logado
+      return;
     }
     setIsLoadingNotes(true);
     try {
       let teamViewForApi: string | undefined = undefined;
 
-      // Define o parâmetro `teamView` a ser enviado para a API, baseado na role do usuário
-      // e na `currentView` selecionada na Sidebar.
       if (user.role === 'Admin') {
-        // Admins podem ver todas as notas (quando 'Geral') ou filtrar por uma equipe específica
         teamViewForApi = currentView === 'Geral' ? undefined : currentView;
       } else if (user.role === 'Viewer') {
-        // Viewers só podem ver notas 'Geral'
         teamViewForApi = 'Geral';
       } else if (user.role === 'Support TI' || user.role === 'Sistemas MV') {
-        // Usuários de equipe podem ver notas da sua própria equipe e 'Geral'
-        teamViewForApi = currentView; // A API vai lidar com 'Geral' ou a equipe específica
+        teamViewForApi = currentView;
       }
 
       const fetchedNotes = await fetchNotes({
         search: searchTerm,
         tag: filterTag !== 'all' ? filterTag : undefined,
-        teamView: teamViewForApi // Passa a view para o backend para filtragem
+        teamView: teamViewForApi
       });
       setNotes(fetchedNotes);
     } catch (error: any) {
@@ -72,40 +67,33 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
     } finally {
       setIsLoadingNotes(false);
     }
-  }, [user, currentView, searchTerm, filterTag]); // Adiciona dependências
+  }, [user, currentView, searchTerm, filterTag]);
 
-  // Efeito para carregar as notas ao montar o componente ou mudar as dependências
   useEffect(() => {
     loadNotes();
   }, [loadNotes]);
 
-  // Função para filtrar e ordenar notas localmente (após a API já ter filtrado)
   const filterNotes = () => {
-    let filtered = [...notes]; // Começa com as notas já recebidas do backend
-    // Apenas a ordenação é feita no frontend agora
+    let filtered = [...notes];
     filtered.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     setFilteredNotes(filtered);
   };
 
-  // Efeito para re-filtrar/ordenar quando as notas carregadas mudam
   useEffect(() => {
     filterNotes();
   }, [notes]);
 
-  // Handler para iniciar a criação de uma nova nota
   const handleCreateNote = () => {
     setEditingNote(undefined);
     setIsEditing(true);
   };
 
-  // Handler para iniciar a edição de uma nota existente
   const handleEditNote = (note: Note) => {
     setEditingNote(note);
     setIsEditing(true);
   };
 
-  // Handler para salvar (criar ou atualizar) uma nota
-  const handleSaveNote = async (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'author' | 'authorName' | '_id'>) => {
+  const handleSaveNote = async (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'author' | 'authorName' | '_id' | 'comments' | 'versionHistory'>) => {
     if (!user) {
       toast({
         title: "Erro",
@@ -117,7 +105,6 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
 
     try {
       if (editingNote) {
-        // Atualizar nota existente: usa editingNote._id
         await updateNoteApi(editingNote._id, { 
           title: noteData.title,
           content: noteData.content,
@@ -126,15 +113,14 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
         });
         toast({ title: "Nota atualizada!", description: "Suas alterações foram salvas com sucesso." });
       } else {
-        // Criar nova nota: envia dados para a API
         await createNoteApi({
           ...noteData,
-          authorId: user.id, // ID do usuário logado
-          authorName: user.name, // Nome do usuário logado
+          authorId: user.id,
+          authorName: user.name,
         });
         toast({ title: "Nota criada!", description: "Nova nota criada com sucesso." });
       }
-      loadNotes(); // Recarrega as notas do backend após salvar
+      loadNotes();
       setIsEditing(false);
       setEditingNote(undefined);
     } catch (error: any) {
@@ -147,19 +133,17 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
     }
   };
 
-  // Handler para iniciar o processo de exclusão (abre o modal)
   const handleDeleteNote = (noteId: string) => {
-    setNoteToDeleteId(noteId); // Armazena o ID da nota a ser deletada
-    setShowConfirmDelete(true); // Exibe o modal de confirmação
+    setNoteToDeleteId(noteId);
+    setShowConfirmDelete(true);
   };
 
-  // Handler chamado ao confirmar a exclusão no modal
   const confirmDelete = async () => {
-    if (!noteToDeleteId) return; // Garante que há um ID para deletar
+    if (!noteToDeleteId) return;
 
     try {
-      await deleteNoteApi(noteToDeleteId); // Chama a API para deletar
-      loadNotes(); // Recarrega as notas do backend
+      await deleteNoteApi(noteToDeleteId);
+      loadNotes();
       toast({ title: "Nota excluída!", description: "A nota foi removida com sucesso." });
     } catch (error: any) {
       console.error('Erro ao deletar nota:', error);
@@ -169,53 +153,48 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
         variant: "destructive",
       });
     } finally {
-      // Sempre esconde o modal e limpa o ID, independentemente do sucesso/falha
       setShowConfirmDelete(false);
       setNoteToDeleteId(null);
     }
   };
 
-  // Handler chamado ao cancelar a exclusão no modal
   const handleCancelDelete = () => {
     setShowConfirmDelete(false);
     setNoteToDeleteId(null);
   };
 
-  // Handler para cancelar a edição/criação de nota
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditingNote(undefined);
   };
 
-  // Lógica de permissão para criar notas (controle no frontend)
+  const handleViewComments = (noteId: string) => {
+    setShowCommentsPanel(noteId);
+  };
+
   const canCreateNote = () => {
-    if (user?.role === 'Viewer') return false; // Viewers não podem criar notas
-    // Se a view atual é 'Geral', apenas Admins podem criar notas nesta categoria
+    if (user?.role === 'Viewer') return false;
     if (currentView === 'Geral' && user?.role !== 'Admin') return false;
-    if (user?.role === 'Admin') return true; // Admins podem criar em qualquer view
-    // Outras roles (Support TI, Sistemas MV) só podem criar notas se a view atual corresponder à sua role
+    if (user?.role === 'Admin') return true;
     return user?.role === currentView;
   };
 
-  // Obtém todas as tags únicas das notas carregadas
   const getAllTags = () => {
     const allTags = notes.flatMap(note => note.tags);
     return Array.from(new Set(allTags)).sort();
   };
 
-  // Retorna o título da visualização atual
   const getViewTitle = () => {
     switch (currentView) {
       case 'Support TI': return 'Notas da Equipe Support TI';
       case 'Sistemas MV': return 'Notas da Equipe Sistemas MV';
       case 'Geral': return 'Visão Geral - Todas as Notas';
-      case 'Admin': return 'Painel de Administração de Notas'; // Titulo para Admin view
-      case 'Viewer': return 'Visualização de Notas'; // Titulo para Viewer view
+      case 'Admin': return 'Painel de Administração de Notas';
+      case 'Viewer': return 'Visualização de Notas';
       default: return 'Notas';
     }
   };
 
-  // Retorna a descrição da visualização atual
   const getViewDescription = () => {
     switch (currentView) {
       case 'Support TI': return 'Documentações e procedimentos da equipe de suporte técnico.';
@@ -227,7 +206,6 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
     }
   };
 
-  // Renderiza o histórico de versões se showVersionHistory estiver ativo
   if (showVersionHistory) {
     return (
       <VersionHistory
@@ -237,7 +215,17 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
     );
   }
 
-  // Renderiza o editor de notas se isEditing estiver ativo
+  // Renderiza o painel de comentários se showCommentsPanel estiver ativo
+  if (showCommentsPanel) {
+    return (
+      <NoteComments
+        noteId={showCommentsPanel}
+        onClose={() => setShowCommentsPanel(null)}
+        onCommentAdded={() => loadNotes()} // <-- NOVO: Callback para recarregar MainContent após adicionar comentário
+      />
+    );
+  }
+
   if (isEditing) {
     return (
       <div className="p-4 md:p-6">
@@ -245,9 +233,8 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
           note={editingNote}
           onSave={handleSaveNote}
           onCancel={handleCancelEdit}
-          // Passa a currentView como defaultTeam, a menos que seja Geral e o usuário não seja Admin
           defaultTeam={currentView === 'Geral' && user?.role !== 'Admin' ? 'Geral' : currentView as 'Support TI' | 'Sistemas MV' | 'Geral'}
-          userRole={user?.role} // Passa a role do usuário para controle de permissão no editor
+          userRole={user?.role}
         />
       </div>
     );
@@ -335,19 +322,17 @@ const MainContent: React.FC<MainContentProps> = ({ currentView }) => {
         <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {filteredNotes.map((note) => (
             <NoteCard
-              key={note._id} // Usa note._id como a chave única
+              key={note._id}
               note={note}
               onEdit={handleEditNote}
-              onDelete={handleDeleteNote} // Chama o handler que abre o modal
+              onDelete={handleDeleteNote}
               onViewHistory={(noteId) => setShowVersionHistory(noteId)}
-              showComments={currentView === 'Geral'} // Condicionalmente mostra comentários (se implementado)
-              // Lógica para determinar se o usuário pode editar ou deletar a nota
+              onViewComments={handleViewComments}
+              showComments={currentView === 'Geral'}
               canEditOrDelete={
-                user?.role === 'Admin' || // Admin sempre pode
-                (user?.role !== 'Viewer' && // Não é Viewer E
-                 (note.author === user?.id || // É o autor DA NOTA OU
-                  note.team === user?.role || // A nota pertence à equipe do usuário OU
-                  (note.team === 'Geral' && (user?.role === 'Support TI' || user?.role === 'Sistemas MV'))) // A nota é 'Geral' e o usuário é TI/MV
+                user?.role === 'Admin' ||
+                (user?.role !== 'Viewer' &&
+                 (note.author === user?.id || note.team === user?.role || (note.team === 'Geral' && (user?.role === 'Support TI' || user?.role === 'Sistemas MV')))
                 )
               }
             />

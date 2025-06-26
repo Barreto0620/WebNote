@@ -8,6 +8,15 @@ export interface VersionHistoryEntry {
   editorName: string; // Nome do editor
 }
 
+// NOVA INTERFACE: Para um item de comentário no frontend
+export interface Comment {
+  _id: string; // ID do comentário (gerado pelo MongoDB)
+  content: string;
+  author: string; // ID do autor (string do ObjectId do MongoDB)
+  authorName: string; // Nome do autor do comentário
+  createdAt: string; // Data de criação como string ISO
+}
+
 export interface Note {
   _id: string; // O _id do MongoDB como string (ID real)
   title: string;
@@ -16,7 +25,8 @@ export interface Note {
   authorName: string;
   team: 'Geral' | 'Support TI' | 'Sistemas MV'; // Certifique-se de que os valores correspondem aos do backend
   tags: string[];
-  versionHistory: VersionHistoryEntry[]; // NOVO CAMPO: Array de histórico de versões
+  versionHistory: VersionHistoryEntry[];
+  comments: Comment[]; // NOVO CAMPO: Array de comentários
   createdAt: string; // As datas vêm como strings ISO do MongoDB
   updatedAt: string; // As datas vêm como strings ISO do MongoDB
 }
