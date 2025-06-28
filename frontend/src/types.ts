@@ -25,11 +25,27 @@ export interface Note {
   authorName: string;
   team: 'Geral' | 'Support TI' | 'Sistemas MV'; // Certifique-se de que os valores correspondem aos do backend
   tags: string[];
-  versionHistory: VersionHistoryEntry[];
+  versionHistory: VersionHistoryEntry[]; // Array de histórico de versões
   comments: Comment[]; // NOVO CAMPO: Array de comentários
   createdAt: string; // As datas vêm como strings ISO do MongoDB
   updatedAt: string; // As datas vêm como strings ISO do MongoDB
 }
 
-// Certifique-se de que estes tipos de ViewMode estão alinhados com as roles do seu AuthContext
-export type ViewMode = 'Geral' | 'Support TI' | 'Sistemas MV' | 'Admin' | 'Viewer';
+// NOVA INTERFACE: Para eventos do calendário
+export interface Event {
+  _id: string; // ID do evento
+  title: string;
+  description?: string;
+  eventDate: string; // Vem como string ISO do backend
+  eventTime?: string; // HH:MM
+  notificationType: 'none' | 'hourBefore' | 'dayBefore';
+  eventType: 'general' | 'birthday' | 'reminder';
+  author: string; // ID do usuário que criou o evento
+  authorName: string;
+  team: 'Geral' | 'Support TI' | 'Sistemas MV';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ATUALIZAR ViewMode para incluir 'Calendar'
+export type ViewMode = 'Geral' | 'Support TI' | 'Sistemas MV' | 'Admin' | 'Viewer' | 'Calendar';

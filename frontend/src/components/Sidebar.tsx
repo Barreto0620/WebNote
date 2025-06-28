@@ -10,7 +10,8 @@ import {
   Shield,      // Ícone para Admin
   Sun, Moon,   // Ícones para tema
   LogOut,      // Ícone para Sair
-  Key,         // NOVO ÍCONE: Para alterar senha
+  Key,         // Ícone para alterar senha
+  Calendar as CalendarIcon, // NOVO ÍCONE: Para o calendário
   Menu, X,     // Ícones para menu mobile
   User as UserIcon // Importa User como UserIcon para evitar conflito com 'user' prop do useAuth
 } from 'lucide-react';
@@ -19,19 +20,17 @@ import { Separator } from '@/components/ui/separator';
 interface SidebarProps {
   currentView: ViewMode;
   onViewChange: (view: ViewMode) => void;
-  onLogout: () => void; // Adiciona a prop onLogout
-  onChangePassword: () => void; // NOVO: Adiciona a prop onChangePassword para o modal
+  onLogout: () => void;
+  onChangePassword: () => void; // Prop para abrir o modal de alteração de senha
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onLogout, onChangePassword }) => {
-  const { user, logout: authLogout } = useAuth(); // Renomeia 'logout' do hook para 'authLogout'
+  const { user, logout: authLogout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Função para chamar o logout passado via props
   const handleLogout = () => {
-    onLogout(); // Chama a função de logout recebida via props
-    // Opcional: Fechar menu mobile após sair
+    onLogout();
     setIsMobileMenuOpen(false);
   };
 
@@ -70,6 +69,16 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onLogout, 
       });
     }
     
+    // NOVO: Adiciona a visão do Calendário para todos os usuários logados
+    // Você pode ajustar a permissão aqui se apenas certas roles puderem ver o calendário
+    if (user) { // ou user.role === 'Admin' || user.role === 'Support TI' etc.
+      views.push({
+        view: 'Calendar' as ViewMode, // A nova ViewMode 'Calendar'
+        label: 'Calendário',
+        icon: <CalendarIcon className="w-4 h-4" />
+      });
+    }
+
     return views;
   };
 
@@ -79,11 +88,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, onLogout, 
 
   const handleViewChange = (view: ViewMode) => {
     onViewChange(view);
-    setIsMobileMenuOpen(false); // Fechar menu mobile após seleção
+    setIsMobileMenuOpen(false);
   };
 
   if (!user) {
-    return null; // Não renderiza a sidebar se não houver usuário logado
+    return null;
   }
 
   return (
