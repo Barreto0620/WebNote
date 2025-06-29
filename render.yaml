@@ -8,11 +8,17 @@ services:
     repo: https://github.com/Barreto0620/Note_HEMC.git
     branch: main
     
+    # Define o diretório raiz para este serviço.
+    # Isso fará com que 'buildCommand' e 'startCommand' sejam executados
+    # a partir da pasta 'backend/' dentro do seu repositório.
+    rootDir: backend 
+
     # Comandos para construir e iniciar sua aplicação
-    # 'npm install' instala as dependências
-    # 'npm run build' executa 'tsc' conforme seu package.json, gerando a pasta 'dist'
+    # 'npm install' agora instala as dependências da pasta 'backend'
+    # 'npm run build' agora executa o script 'build' do package.json da pasta 'backend',
+    # que transpila o código para 'backend/dist'.
     buildCommand: "npm install && npm run build" 
-    # 'node dist/server.js' inicia o servidor a partir do código transpilado
+    # 'node dist/server.js' agora inicia o servidor a partir de 'backend/dist/server.js'.
     startCommand: "node dist/server.js"
 
     # Configuração da rota de Health Check
