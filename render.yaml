@@ -20,12 +20,11 @@ services:
     # Variáveis de Ambiente (configure os valores no dashboard do Render)
     envVars:
       - key: NODE_ENV
-        value: production
+        value: production # Conforme seu .env
       - key: MONGO_URI
         # O valor será pego do seu Secret Manager ou inserido diretamente no dashboard
-        # Ex: mongodb+srv://...
-        fromDatabase:
-          name: seu-banco-de-dados-mongo # Se você criar o banco no Render
-          property: connectionString # Ou insira o valor manualmente no dashboard
+        # Ex: mongodb+srv://mariocovasdb:TUXL3dgwFvM94IsK@cluster0.ns4bwt1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+        value: mongodb+srv://mariocovasdb:TUXL3dgwFvM94IsK@cluster0.ns4bwt1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+        # Removido 'fromDatabase' pois você já tem a URI completa no .env
       - key: JWT_SECRET
-        generateValue: true # Deixa o Render gerar um segredo seguro para você
+        value: @Mariocovas2025 # Conforme seu .env. Considere usar 'generateValue: true' para maior segurança em produção.
