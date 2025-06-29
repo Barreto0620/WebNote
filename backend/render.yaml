@@ -1,0 +1,31 @@
+# Este arquivo define a infraestrutura como código para o seu serviço no Render.
+# Você pode fazer o deploy diretamente a partir dele.
+# Coloque este arquivo na raiz do seu projeto (na pasta `backend`).
+
+services:
+  - type: web
+    name: notas-internas-backend
+    runtime: node
+    plan: free # Ou o plano de sua preferência
+    repo: https://github.com/Barreto0620/Note_HEMC.git # <-- IMPORTANTE: Troque pelo URL do seu repositório Git
+    branch: main # Ou o nome da sua branch principal (ex: master)
+    
+    # Comandos para construir e iniciar sua aplicação
+    buildCommand: "npm install && npm run build"
+    startCommand: "node dist/server.js"
+
+    # Configuração da rota de Health Check
+    healthCheckPath: /api/health
+
+    # Variáveis de Ambiente (configure os valores no dashboard do Render)
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        # O valor será pego do seu Secret Manager ou inserido diretamente no dashboard
+        # Ex: mongodb+srv://...
+        fromDatabase:
+          name: seu-banco-de-dados-mongo # Se você criar o banco no Render
+          property: connectionString # Ou insira o valor manualmente no dashboard
+      - key: JWT_SECRET
+        generateValue: true # Deixa o Render gerar um segredo seguro para você

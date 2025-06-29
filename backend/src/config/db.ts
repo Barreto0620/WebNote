@@ -2,7 +2,15 @@ import mongoose from 'mongoose';
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGO_URI || 'mongodb+srv://mariocovasdb:<db_password>@cluster0.ns4bwt1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+    // A conexão agora depende EXCLUSIVAMENTE da variável de ambiente.
+    // Isso é essencial para a segurança em produção.
+    const mongoURI = process.env.MONGO_URI;
+
+    if (!mongoURI) {
+      console.error('ERRO FATAL: Variável de ambiente MONGO_URI não definida.');
+      process.exit(1);
+    }
+    
     const conn = await mongoose.connect(mongoURI);
     console.log(`MongoDB Conectado: ${conn.connection.host}`);
   } catch (error: any) {
