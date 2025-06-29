@@ -1,17 +1,18 @@
-# Este arquivo define a infraestrutura como código para o seu serviço no Render.
-# Você pode fazer o deploy diretamente a partir dele.
-# Coloque este arquivo na raiz do seu projeto (na pasta `backend`).
+# Este arquivo define a infraestrutura como código para o seu serviço de backend no Render.
 
 services:
   - type: web
     name: notas-internas-backend
     runtime: node
     plan: free # Ou o plano de sua preferência
-    repo: https://github.com/Barreto0620/Note_HEMC.git # <-- IMPORTANTE: Troque pelo URL do seu repositório Git
-    branch: main # Ou o nome da sua branch principal (ex: master)
+    repo: https://github.com/Barreto0620/Note_HEMC.git
+    branch: main
     
     # Comandos para construir e iniciar sua aplicação
-    buildCommand: "npm install && npm run build"
+    # 'npm install' instala as dependências
+    # 'npm run build' executa 'tsc' conforme seu package.json, gerando a pasta 'dist'
+    buildCommand: "npm install && npm run build" 
+    # 'node dist/server.js' inicia o servidor a partir do código transpilado
     startCommand: "node dist/server.js"
 
     # Configuração da rota de Health Check
@@ -20,11 +21,12 @@ services:
     # Variáveis de Ambiente (configure os valores no dashboard do Render)
     envVars:
       - key: NODE_ENV
-        value: production # Conforme seu .env
+        value: production
       - key: MONGO_URI
-        # O valor será pego do seu Secret Manager ou inserido diretamente no dashboard
-        # Ex: mongodb+srv://mariocovasdb:TUXL3dgwFvM94IsK@cluster0.ns4bwt1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-        value: mongodb+srv://mariocovasdb:TUXL3dgwFvM94IsK@cluster0.ns4bwt1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-        # Removido 'fromDatabase' pois você já tem a URI completa no .env
+        # O valor é fornecido diretamente, mas para produção, considere configurá-lo
+        # no dashboard do Render como uma variável de ambiente secreta para maior segurança.
+        value: "mongodb+srv://mariocovasdb:TUXL3dgwFvM94IsK@cluster0.ns4bwt1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
       - key: JWT_SECRET
-        value: "@Mariocovas2025" # Conforme seu .env. Considere usar 'generateValue: true' para maior segurança em produção.
+        # O valor foi colocado entre aspas para evitar erros de sintaxe YAML.
+        # Para produção, 'generateValue: true' ou configurar como secreta no dashboard é mais seguro.
+        value: "@Mariocovas2025" 
