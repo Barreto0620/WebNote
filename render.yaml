@@ -27,4 +27,4 @@ services:
         value: mongodb+srv://mariocovasdb:TUXL3dgwFvM94IsK@cluster0.ns4bwt1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
         # Removido 'fromDatabase' pois você já tem a URI completa no .env
       - key: JWT_SECRET
-        value: @Mariocovas2025 # Conforme seu .env. Considere usar 'generateValue: true' para maior segurança em produção.
+        value: "@Mariocovas2025" # Conforme seu .env. Considere usar 'generateValue: true' para maior segurança em produção.
