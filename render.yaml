@@ -8,17 +8,15 @@ services:
     repo: https://github.com/Barreto0620/Note_HEMC.git
     branch: main
     
-    # Define o diretório raiz para este serviço.
+    # MUITO IMPORTANTE: Define o diretório raiz para este serviço.
     # Isso fará com que 'buildCommand' e 'startCommand' sejam executados
-    # a partir da pasta 'backend/' dentro do seu repositório.
+    # A PARTIR DA PASTA 'backend/' dentro do seu repositório.
     rootDir: backend 
 
     # Comandos para construir e iniciar sua aplicação
-    # 'npm install' agora instala as dependências da pasta 'backend'
-    # 'npm run build' agora executa o script 'build' do package.json da pasta 'backend',
-    # que transpila o código para 'backend/dist'.
+    # O comando COMPLETO: primeiro instala dependências, DEPOIS executa o build do TypeScript.
     buildCommand: "npm install && npm run build" 
-    # 'node dist/server.js' agora inicia o servidor a partir de 'backend/dist/server.js'.
+    # Inicia o servidor a partir do código transpilado na pasta 'backend/dist'.
     startCommand: "node dist/server.js"
 
     # Configuração da rota de Health Check
@@ -29,10 +27,6 @@ services:
       - key: NODE_ENV
         value: production
       - key: MONGO_URI
-        # O valor é fornecido diretamente, mas para produção, considere configurá-lo
-        # no dashboard do Render como uma variável de ambiente secreta para maior segurança.
         value: "mongodb+srv://mariocovasdb:TUXL3dgwFvM94IsK@cluster0.ns4bwt1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
       - key: JWT_SECRET
-        # O valor foi colocado entre aspas para evitar erros de sintaxe YAML.
-        # Para produção, 'generateValue: true' ou configurar como secreta no dashboard é mais seguro.
         value: "@Mariocovas2025" 
