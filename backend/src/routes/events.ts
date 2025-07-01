@@ -4,27 +4,33 @@ import { protect } from '../middleware/authMiddleware'; // Importa o middleware 
 
 const router = Router();
 
-// Aplica o middleware 'protect' a todas as rotas de eventos
-router.use(protect); // Todas as rotas de eventos agora exigem autenticação
+// Aplica o middleware 'protect' a TODAS as rotas de eventos definidas abaixo.
+// Isso garante que todas as operações relacionadas a eventos exijam autenticação.
+router.use(protect);
 
 // @route   GET /api/events
-// @access  Private
+// @desc    Obter todos os eventos
+// @access  Private (requer autenticação)
 router.get('/', getEvents);
 
 // @route   POST /api/events
-// @access  Private
+// @desc    Criar um novo evento
+// @access  Private (requer autenticação)
 router.post('/', createEvent);
 
 // @route   GET /api/events/:id
-// @access  Private
+// @desc    Obter um evento por ID específico
+// @access  Private (requer autenticação)
 router.get('/:id', getEventById);
 
 // @route   PUT /api/events/:id
-// @access  Private
+// @desc    Atualizar um evento por ID específico
+// @access  Private (requer autenticação)
 router.put('/:id', updateEvent);
 
 // @route   DELETE /api/events/:id
-// @access  Private
+// @desc    Deletar um evento por ID específico
+// @access  Private (requer autenticação)
 router.delete('/:id', deleteEvent);
 
 export default router;

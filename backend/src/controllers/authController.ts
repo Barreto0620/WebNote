@@ -1,38 +1,40 @@
 import { Request, Response } from 'express';
-import User, { IUser } from '../models/User';
+import User, { IUser } from '../models/User'; // Importa o modelo de usuário e sua interface
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs'; // Importar bcryptjs para hashing
+import bcrypt from 'bcryptjs';
 
-// Função auxiliar para gerar JWT
+// Função auxiliar para gerar um JSON Web Token (JWT)
 const generateToken = (id: string, role: string) => {
+  // O segredo do JWT deve ser uma variável de ambiente segura em produção
   return jwt.sign({ id, role }, process.env.JWT_SECRET as string, {
-    expiresIn: '365d', // Token expira em 365 dias
+    expiresIn: '365d', // Token expira em 365 dias (ajuste conforme a política de segurança)
   });
 };
 
-// @desc    Registrar novo usuário (opcional, pode ser usado para criar usuários iniciais)
+// @desc    Registrar novo usuário
 // @route   POST /api/auth/register
-// @access  Public (ou Private, dependendo da sua estratégia de registro)
+// @access  Public (ou Private, se o registro for apenas por admins)
 export const registerUser = async (req: Request, res: Response) => {
   const { email, password, name, role } = req.body;
 
-  // Validação básica de entrada
+  // Validação básica de entrada para campos obrigatórios
   if (!email || !password || !name) {
-    return res.status(400).json({ message: 'Por favor, insira todos os campos obrigatórios: email, senha e nome.' });
+    return res.status(400).json({ message: 'Por favor, forneça email, senha e nome para o registro.' });
   }
 
   try {
-    // Verificar se o usuário já existe
+    // Verifica se já existe um usuário com o email fornecido
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: 'Usuário com este email já existe.' });
+      return res.status(400).json({ message: 'Um usuário com este email já está registrado.' });
     }
 
-    // Criar novo usuário
-    const newUser: IUser = new User({ email, password, name, role: role || 'Viewer' });
+    // Cria um novo usuário. O hash da senha será automaticamente realizado
+    // pelo middleware `pre('save')` definido no modelo User.
+    const newUser: IUser = new User({ email, password, name, role: role || 'Viewer' }); // Define 'Viewer' como padrão se não especificado
     const savedUser = await newUser.save();
 
-    // Retorna o usuário sem a senha e um token
+    // Retorna os dados do usuário (sem a senha) e um token de autenticação
     res.status(201).json({
       _id: savedUser._id,
       name: savedUser.name,
@@ -43,10 +45,9 @@ export const registerUser = async (req: Request, res: Response) => {
 
   } catch (error: any) {
     console.error('Erro ao registrar usuário:', error);
-    res.status(500).json({ message: `Erro no servidor: ${error.message}` });
+    res.status(500).json({ message: `Erro no servidor ao registrar usuário: ${error.message}` });
   }
 };
-
 
 // @desc    Autenticar usuário e obter token
 // @route   POST /api/auth/login
@@ -54,18 +55,18 @@ export const registerUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  // Validação de entrada
+  // Validação de entrada para email e senha
   if (!email || !password) {
-    return res.status(400).json({ message: 'Por favor, insira email e senha.' });
+    return res.status(400).json({ message: 'Por favor, forneça email e senha para o login.' });
   }
 
   try {
-    // Encontrar o usuário pelo email (selecionando a senha também)
+    // Encontra o usuário pelo email e explicitamente seleciona a senha para comparação
     const user = await User.findOne({ email }).select('+password');
 
-    // Verificar se o usuário existe e se a senha está correta
+    // Verifica se o usuário existe e se a senha fornecida corresponde à senha armazenada (hasheada)
     if (user && (await user.comparePassword(password))) {
-      // Retorna o usuário (sem a senha) e o token JWT
+      // Retorna os dados do usuário (sem a senha) e o token JWT
       res.json({
         _id: user._id,
         name: user.name,
@@ -74,66 +75,61 @@ export const loginUser = async (req: Request, res: Response) => {
         token: generateToken(user._id.toString(), user.role),
       });
     } else {
-      res.status(401).json({ message: 'Credenciais inválidas (email ou senha).' });
+      res.status(401).json({ message: 'Credenciais inválidas: email ou senha incorretos.' });
     }
   } catch (error: any) {
     console.error('Erro ao fazer login:', error);
-    res.status(500).json({ message: `Erro no servidor: ${error.message}` });
+    res.status(500).json({ message: `Erro no servidor ao autenticar: ${error.message}` });
   }
 };
 
 // @desc    Alterar a senha do usuário logado
 // @route   PUT /api/auth/change-password
-// @access  Private (requer autenticação)
+// @access  Private (requer autenticação via token JWT)
 export const changePassword = async (req: Request, res: Response) => {
   const { currentPassword, newPassword } = req.body;
-  const user = (req as any).user; // O usuário autenticado é anexado pelo middleware 'protect'
+  // O objeto 'user' é anexado à requisição pelo middleware 'protect'
+  const user = req.user; 
 
   if (!user) {
-    return res.status(401).json({ message: 'Não autorizado, usuário não autenticado.' });
+    return res.status(401).json({ message: 'Não autorizado: usuário não autenticado.' });
   }
 
+  // Validação para garantir que ambas as senhas foram fornecidas
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: 'Por favor, forneça a senha atual e a nova senha.' });
   }
 
-  // Validação básica da nova senha
+  // Validação de complexidade da nova senha
   if (newPassword.length < 6) {
     return res.status(400).json({ message: 'A nova senha deve ter pelo menos 6 caracteres.' });
   }
-  // Adicione outras validações de complexidade de senha aqui (min maiúsculas, números, símbolos, etc.)
-  // if (!/(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)/.test(newPassword)) {
-  //   return res.status(400).json({ message: 'A nova senha deve conter letras maiúsculas, minúsculas, números e símbolos.' });
-  // }
-
+  // Adicione outras regras de complexidade aqui (ex: Regex para maiúsculas, números, símbolos)
 
   try {
-    // Encontrar o usuário pelo ID e selecionar a senha (que normalmente é omitida)
+    // Busca o usuário no banco de dados, incluindo a senha para comparação
     const foundUser = await User.findById(user._id).select('+password');
 
+    // Verifica se o usuário foi encontrado (segurança extra, já que 'protect' já deveria garantir isso)
     if (!foundUser) {
-      // Isso não deveria acontecer se o middleware 'protect' funcionar corretamente, mas é uma segurança.
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
-    // Verificar se a senha atual fornecida corresponde à senha do usuário
+    // Compara a senha atual fornecida com a senha hasheada no banco de dados
     const isMatch = await foundUser.comparePassword(currentPassword);
 
     if (!isMatch) {
-      return res.status(401).json({ message: 'Senha atual incorreta.' });
+      return res.status(401).json({ message: 'A senha atual fornecida está incorreta.' });
     }
 
-    // Se a nova senha for igual à atual, não faz sentido alterar
+    // Impede que a nova senha seja igual à senha atual
     if (newPassword === currentPassword) {
         return res.status(400).json({ message: 'A nova senha não pode ser igual à senha atual.' });
     }
 
-    // CORREÇÃO: Atribuir a nova senha (ainda não hasheada) ao objeto do usuário.
-    // O middleware 'pre("save")' do modelo User se encarregará de hashear.
+    // Atribui a nova senha. O middleware `pre('save')` do modelo User irá hashear a nova senha automaticamente.
     foundUser.password = newPassword; 
-
-    // Salvar o usuário com a nova senha. O hash será feito no middleware 'pre("save")'.
-    await foundUser.save();
+    await foundUser.save(); // Salva o usuário com a nova senha hasheada
 
     res.status(200).json({ message: 'Senha alterada com sucesso!' });
 
