@@ -1,4 +1,4 @@
-// ==== 1. src/types/index.ts (CRIAR ESTE ARQUIVO) ====
+/* // ==== 1. src/types/index.ts (CRIAR ESTE ARQUIVO) ====
 import { Request } from 'express';
 import { ObjectId } from 'mongoose';
 
@@ -424,4 +424,4 @@ router.delete('/:id', deleteNote);
 // Rota para comentários
 router.post('/:id/comments', addCommentToNote);
 
-export default router;
+export default router; */
