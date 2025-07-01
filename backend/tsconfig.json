@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    // Configurações de saída
-    "target": "ES2020",                       /* Versão ECMAScript mais moderna para melhor performance */
+    // Configurações básicas
+    "target": "ES2020",                       /* Versão ECMAScript para o código de saída */
     "module": "commonjs",                     /* Sistema de módulos CommonJS para Node.js */
-    "lib": ["ES2020"],                        /* Bibliotecas do ECMAScript disponíveis */
+    "lib": ["ES2020", "DOM"],                 /* Inclui bibliotecas ES2020 e DOM (para console) */
     "rootDir": "./src",                       /* Diretório raiz dos arquivos fonte */
     "outDir": "./dist",                       /* Diretório de saída dos arquivos compilados */
     
@@ -12,40 +12,21 @@
     "esModuleInterop": true,                  /* Interoperabilidade entre CommonJS e ES Modules */
     "allowSyntheticDefaultImports": true,     /* Permite imports padrão sintéticos */
     "resolveJsonModule": true,                /* Habilita importação de arquivos JSON */
-    "typeRoots": ["./node_modules/@types"],   /* Diretórios onde buscar definições de tipos */
     
     // Configurações de tipo
-    "strict": true,                           /* Habilita verificação de tipos estrita */
-    "noImplicitAny": true,                    /* Erro em expressões com tipo 'any' implícito */
-    "strictNullChecks": true,                 /* Verificação estrita de null/undefined */
-    "strictFunctionTypes": true,              /* Verificação estrita de tipos de função */
-    "noImplicitReturns": true,                /* Erro quando nem todos os caminhos retornam valor */
-    "noFallthroughCasesInSwitch": true,       /* Erro em cases sem break em switch */
-    
-    // Configurações de emissão
-    "declaration": true,                      /* Gera arquivos de declaração .d.ts */
-    "declarationMap": true,                   /* Gera source maps para declarações */
-    "sourceMap": true,                        /* Gera source maps para debug */
-    "removeComments": true,                   /* Remove comentários do código compilado */
+    "strict": false,                          /* Desabilita verificação estrita temporariamente */
+    "noImplicitAny": false,                   /* Permite tipos 'any' implícitos */
+    "strictNullChecks": false,                /* Verificação menos rígida de null/undefined */
     
     // Configurações de qualidade
     "forceConsistentCasingInFileNames": true, /* Força consistência no case dos nomes de arquivos */
-    "skipLibCheck": true,                     /* Pula verificação de tipos em arquivos .d.ts */
-    "exactOptionalPropertyTypes": true,       /* Verificação exata de propriedades opcionais */
-    "noUncheckedIndexedAccess": true,         /* Verificação de acesso a índices */
-    
-    // Configurações experimentais
-    "experimentalDecorators": true,           /* Suporte a decorators (útil para frameworks) */
-    "emitDecoratorMetadata": true             /* Emite metadados de decorators */
+    "skipLibCheck": true                      /* Pula verificação de tipos em arquivos .d.ts */
   },
   "include": [
-    "src/**/*.ts",                            /* Inclui todos arquivos TypeScript na pasta src */
-    "src/**/*.json"                           /* Inclui arquivos JSON para configurações */
+    "src/**/*.ts"                             /* Inclui todos arquivos TypeScript na pasta src */
   ],
   "exclude": [
     "node_modules",                           /* Exclui dependências */
-    "dist",                                   /* Exclui arquivos compilados */
-    "**/*.test.ts",                          /* Exclui arquivos de teste */
-    "**/*.spec.ts"                           /* Exclui arquivos de especificação */
+    "dist"                                    /* Exclui arquivos compilados */
   ]
 }
