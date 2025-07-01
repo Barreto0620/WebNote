@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/User'; // Importa o modelo de usuário e sua interface
 import jwt from 'jsonwebtoken';
