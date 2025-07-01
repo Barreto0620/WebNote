@@ -1,36 +1,23 @@
 {
-  "name": "notas-internas-backend",
+  "name": "Note-HEMC",
   "version": "1.0.0",
-  "description": "Backend para o sistema de notas internas",
-  "main": "dist/server.js",
-  "type": "commonjs",
+  "description": "Projeto Full Stack com Frontend React/Vite e Backend Node.js",
+  "private": true,
   "scripts": {
-    "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc"
-  },
-  "keywords": [],
-  "author": "Seu Nome",
-  "license": "ISC",
-  "engines": {
-    "node": "20.x"
-  },
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^4.19.2",
-    "helmet": "^7.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.5.1"
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "start": "npm run dev",
+    "build:backend": "npm install --prefix backend && npm run build --prefix backend",
+    "build:frontend": "npm install --prefix frontend && npm run build --prefix frontend",
+    "build:all": "npm run build:backend && npm run build:frontend",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "lint:backend": "npm run lint --prefix backend",
+    "lint:frontend": "npm run lint --prefix frontend",
+    "lint:all": "npm run lint:backend && npm run lint:frontend"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^4.17.23",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^20.14.10",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.5.3"
-  }
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {}
 }
