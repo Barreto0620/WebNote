@@ -7,7 +7,11 @@
     "esModuleInterop": true,                  /* Habilita a interoperabilidade padrão para módulos CommonJS e ES. */
     "forceConsistentCasingInFileNames": true, /* Garante que os nomes dos arquivos importados e os nomes dos arquivos no disco tenham o mesmo "case". */
     "strict": true,                           /* Habilita todas as opções estritas de verificação de tipo. */
-    "skipLibCheck": true                      /* Pula a verificação de tipo de todos os arquivos de declaração (.d.ts). */
+    "skipLibCheck": true,                     /* Pula a verificação de tipo de todos os arquivos de declaração (.d.ts). */
+    "moduleResolution": "node",               /* Especifica a estratégia de resolução de módulos. */
+    "allowSyntheticDefaultImports": true,     /* Permite importações padrão sintéticas de módulos sem exportação padrão. */
+    "resolveJsonModule": true,                /* Permite importar arquivos .json. */
+    "types": ["node"]                         /* Inclui tipos do Node.js globalmente. */
   },
   "include": ["src/**/*.ts"],                 /* Inclui todos os arquivos .ts na pasta src e suas subpastas. */
   "exclude": ["node_modules"]                 /* Exclui o diretório node_modules da compilação. */
