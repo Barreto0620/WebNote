@@ -1,6 +1,24 @@
 import { Note, Comment } from '@/types';
 import { api } from '@/config/api';
 
+// Função authenticatedFetch exportada
+export const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+  
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  };
+
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...defaultHeaders,
+      ...options.headers,
+    },
+  });
+};
+
 export const fetchNotes = async (
   queryParams: { search?: string; tag?: string; teamView?: string }
 ): Promise<Note[]> => {
