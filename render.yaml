@@ -1,39 +1,32 @@
-# Define a infraestrutura como código para o seu serviço de backend no Render.
+# Este arquivo define a infraestrutura como código para o seu serviço de backend no Render.
 
 services:
   - type: web
     name: notas-internas-backend
     runtime: node
-    plan: free 
+    plan: free # Ou o plano de sua preferência
     repo: https://github.com/Barreto0620/Note_HEMC.git
     branch: main
     
-    # [CORREÇÃO APLICADA ABAIXO]
-    # O comando de build foi modificado para forçar a entrada no diretório 'backend'
-    # antes de instalar as dependências e compilar o projeto.
-    # Isso resolve o erro "Missing script: build".
-    buildCommand: "cd backend && npm install && npm run build"
-    
-    # O comando de start também precisa ser ajustado para o contexto do diretório.
-    # No entanto, como o build já acontece lá, o startCommand original deve funcionar
-    # pois o Render mantém o contexto, mas por segurança, podemos manter o 'cd'.
-    # O comando abaixo é o original e deve funcionar. Se não, use o alternativo.
-    startCommand: "node backend/dist/server.js"
-    # Comando alternativo (se o acima falhar): "cd backend && node dist/server.js"
+    # MUITO IMPORTANTE: Define o diretório raiz para este serviço.
+    # Isso fará com que 'buildCommand' e 'startCommand' sejam executados
+    # A PARTIR DA PASTA 'backend/' dentro do seu repositório.
+    rootDir: backend 
 
-    # A configuração 'rootDir' pode ser removida se usarmos 'cd' nos comandos,
-    # mas mantê-la não causa problemas.
-    rootDir: backend
+    # Comandos para construir e iniciar sua aplicação
+    # O comando COMPLETO: primeiro instala dependências, DEPOIS executa o build do TypeScript.
+    buildCommand: "npm install && npm run build" 
+    # Inicia o servidor a partir do código transpilado na pasta 'backend/dist'.
+    startCommand: "node dist/server.js"
 
+    # Configuração da rota de Health Check
     healthCheckPath: /api/health
 
+    # Variáveis de Ambiente (configure os valores no dashboard do Render)
     envVars:
       - key: NODE_ENV
         value: production
-      # Lembre-se de mover MONGO_URI e JWT_SECRET para as "Secret Files" ou 
-      # variáveis de ambiente seguras no dashboard do Render.
       - key: MONGO_URI
-        fromSecret: MONGO_URI_SECRET # Exemplo de como usar um segredo
+        value: "mongodb+srv://mariocovasdb:TUXL3dgwFvM94IsK@cluster0.ns4bwt1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
       - key: JWT_SECRET
-        fromSecret: JWT_SECRET_VALUE # Exemplo de como usar um segredo
-
+        value: "@Mariocovas2025" 
