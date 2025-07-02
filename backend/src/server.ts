@@ -19,36 +19,28 @@ const app = express();
 // Conecta ao banco de dados MongoDB
 connectDB();
 
-// Configuração CORS mais robusta
+// Configuração CORS restrita para aceitar apenas o frontend https://note-hemc.vercel.app
 const corsOptions = {
   origin: function (origin: string | undefined, callback: Function) {
-    // Lista de origens permitidas
-    const allowedOrigins = [
-      'http://localhost:8080',
-      'http://127.0.0.1:8080',
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      process.env.FRONTEND_URL,
-      process.env.CORS_ORIGIN
-    ].filter(Boolean); // Remove valores undefined/null
+    const allowedOrigin = 'https://note-hemc.vercel.app';
 
-    // Permite requisições sem origin (ex: aplicativos mobile, Postman)
+    // Permite requisições sem origin (ex: Postman, apps mobile)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
+
+    if (origin === allowedOrigin) {
       callback(null, true);
     } else {
-      callback(new Error('Não permitido pelo CORS'));
+      callback(new Error(`CORS - Origem ${origin} não permitida.`));
     }
   },
-  credentials: true, // Permite cookies e headers de autenticação
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 
 // Middlewares essenciais
 app.use(express.json({ limit: '10mb' })); // Middleware para analisar corpos de requisição JSON
-app.use(cors(corsOptions));               // Habilita o Cross-Origin Resource Sharing
+app.use(cors(corsOptions));               // Habilita o Cross-Origin Resource Sharing com regras restritas
 app.use(helmet({
   crossOriginEmbedderPolicy: false, // Permite embeds de diferentes origens
   contentSecurityPolicy: {
@@ -70,11 +62,11 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Definição das rotas da API
-app.use('/api/notes', notesRoutes);   // Todas as rotas que começam com /api/notes serão gerenciadas por notesRoutes
-app.use('/api/auth', authRoutes);     // Todas as rotas que começam com /api/auth serão gerenciadas por authRoutes
-app.use('/api/events', eventRoutes);  // Todas as rotas que começam com /api/events serão gerenciadas por eventRoutes
+app.use('/api/notes', notesRoutes);   // Rotas de notas
+app.use('/api/auth', authRoutes);     // Rotas de autenticação
+app.use('/api/events', eventRoutes);  // Rotas de eventos
 
-// Rota de Health Check para serviços de deploy (como Render) verificarem se a aplicação está online
+// Rota de Health Check para serviços de deploy verificarem se a aplicação está online
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
     status: 'UP', 
@@ -137,7 +129,6 @@ const PORT = process.env.PORT || 5000;
 
 // Inicia o servidor Express
 app.listen(PORT, () => {
-  // Exibe uma mensagem no console informando que o servidor está rodando
   console.log(`🚀 Servidor rodando em modo ${process.env.NODE_ENV || 'development'} na porta ${PORT}`);
   console.log(`📡 API disponível em: ${process.env.NODE_ENV === 'production' ? 'https://note-hemc.onrender.com' : `http://localhost:${PORT}`}`);
   console.log(`🔗 Health Check: ${process.env.NODE_ENV === 'production' ? 'https://note-hemc.onrender.com' : `http://localhost:${PORT}`}/api/health`);
