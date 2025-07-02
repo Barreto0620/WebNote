@@ -11,14 +11,23 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       // Quando o frontend faz uma requisição para URLs que começam com '/api'
       '/api': {
-        target: 'http://localhost:5000', // Redireciona para o seu backend
+        target: mode === 'development' 
+          ? 'http://localhost:5000'  // Desenvolvimento local
+          : 'https://notas-internas-backend.onrender.com', // Produção no Render
         changeOrigin: true, // Necessário para reescrever o cabeçalho 'Origin' para o backend
-        secure: false, // Desabilita SSL/TLS para desenvolvimento local (se seu backend não tiver HTTPS)
-        // rewrite: (path) => path.replace(/^\/api/, ''), // Esta linha NÃO é necessária se seu backend já tem /api nas rotas
-                                                      // Ex: Se o backend tem `/api/notes`, e você chama `/api/notes`,
-                                                      // o proxy envia `/api/notes`. Se você tivesse `/notes` no backend
-                                                      // e chamasse `/api/notes` no front, precisaria do rewrite.
-                                                      // Pelo seu código, seu backend já tem /api.
+        secure: true, // Habilita SSL/TLS para produção
+        configure: (proxy, options) => {
+          // Log das requisições proxy em desenvolvimento
+          proxy.on('error', (err, req, res) => {
+            console.log('Erro no proxy:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('Enviando requisição para:', proxyReq.getHeader('host') + proxyReq.path);
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log('Resposta recebida do servidor:', proxyRes.statusCode);
+          });
+        }
       }
     }
   },
@@ -31,5 +40,26 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  // Configurações para build de produção
+  build: {
+    outDir: 'dist',
+    sourcemap: mode === 'development',
+    minify: mode === 'production' ? 'esbuild' : false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
+      },
+    },
+  },
+  // Variáveis de ambiente
+  define: {
+    __API_URL__: JSON.stringify(
+      mode === 'production' 
+        ? 'https://notas-internas-backend.onrender.com' 
+        : 'http://localhost:5000'
+    ),
   },
 }));
