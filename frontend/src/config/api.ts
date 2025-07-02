@@ -72,7 +72,7 @@ export const apiRequest = async (
   };
 
   // Adiciona token de autenticação se existir
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('mario_covas_token');
   if (token) {
     config.headers = {
       ...config.headers,
